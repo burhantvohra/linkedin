@@ -12,7 +12,7 @@ import pickle
 import os
 
 class LinkedInAutomation:
-    def __init__(self, username, password, search_url, comments_file, output_file='tracking_output.xlsx'):
+    def __init__(self, username, password, search_url, comments_file, output_file='tracking_output.xlsx', cookie_file='linkedin_cookies.pkl'):
         self.username = username
         self.password = password
         self.search_url = search_url
@@ -22,9 +22,32 @@ class LinkedInAutomation:
         self.start_time = time.time()
         self.output_file = output_file
         self.actions_log = []
+        self.cookie_file = cookie_file  # Add cookie_file here
 
-        if not os.path.exists(self.output_file):
-            self.initialize_output_file()
+        self.existing_log = self.load_existing_log()
+        # if not os.path.exists(self.output_file):
+        #     self.initialize_output_file()
+
+    def load_existing_log(self):
+        # Load the tracking output file if it exists, else return an empty DataFrame
+        if os.path.exists(self.output_file):
+            return pd.read_excel(self.output_file)
+        else:
+            return pd.DataFrame(columns=['Action', 'Post URL', 'User', 'Comment', 'Timestamp'])
+    
+    def post_already_processed(self, post_url, action):
+        # Check if the post URL and action already exist in the log
+        return not self.existing_log[(self.existing_log['Post URL'] == post_url) & (self.existing_log['Action'] == action)].empty
+    
+    def log_action(self, action, post_url, user, comment=""):
+        # Log the actions taken by the bot (like, comment, repost)
+        self.actions_log.append({
+            'Action': action,
+            'Post URL': post_url,
+            'User': user,
+            'Comment': comment,
+            'Timestamp': time.strftime("%Y-%m-%d %H:%M:%S")
+        })
 
     def save_cookies(self):
         with open(self.cookie_file, 'wb') as file:
@@ -45,16 +68,6 @@ class LinkedInAutomation:
         # Create the tracking output file
         df = pd.DataFrame(columns=['Action', 'Post URL', 'User', 'Comment', 'Timestamp'])
         df.to_excel(self.output_file, index=False)
-    
-    def log_action(self, action, post_url, user, comment=""):
-        # Log the actions taken by the bot (like, comment, repost)
-        self.actions_log.append({
-            'Action': action,
-            'Post URL': post_url,
-            'User': user,
-            'Comment': comment,
-            'Timestamp': time.strftime("%Y-%m-%d %H:%M:%S")
-        })
     
     def save_log_to_file(self):
         # Save the log to the Excel file
@@ -84,35 +97,19 @@ class LinkedInAutomation:
     def get_random_comment(self):
         return random.choice(self.comments)
 
-    # def login(self):
-    #     # Check if cookies exist and try to load them
-    #     self.driver.get('https://www.linkedin.com')
-    #     if self.load_cookies():
-    #         # Refresh after loading cookies to see if session is valid
-    #         self.driver.refresh()
-    #         time.sleep(3)
-    #         # Verify if the session is valid by checking if it redirects to the LinkedIn feed or profile
-    #         if "feed" in self.driver.current_url:
-    #             print("Logged in using cookies.")
-    #             return
-
-    #     # If no cookies or session invalid, perform login
-    #     self.driver.get('https://www.linkedin.com/login')
-    #     self.driver.maximize_window()
-    #     email_field = self.driver.find_element(By.ID, 'username')
-    #     password_field = self.driver.find_element(By.ID, 'password')
-
-    #     email_field.send_keys(self.username)
-    #     password_field.send_keys(self.password)
-    #     password_field.send_keys(Keys.RETURN)
-
-    #     time.sleep(5)
-    #     # input("Please complete the 2FA and press Enter to continue...")
-
-    #     # Save cookies after logging in successfully
-    #     self.save_cookies()
-
     def login(self):
+        # Check if cookies exist and try to load them
+        self.driver.get('https://www.linkedin.com')
+        if self.load_cookies():
+            # Refresh after loading cookies to see if session is valid
+            self.driver.refresh()
+            time.sleep(3)
+            # Verify if the session is valid by checking if it redirects to the LinkedIn feed or profile
+            if "feed" in self.driver.current_url:
+                print("Logged in using cookies.")
+                return
+
+        # If no cookies or session invalid, perform login
         self.driver.get('https://www.linkedin.com/login')
         self.driver.maximize_window()
         email_field = self.driver.find_element(By.ID, 'username')
@@ -122,8 +119,24 @@ class LinkedInAutomation:
         password_field.send_keys(self.password)
         password_field.send_keys(Keys.RETURN)
 
-        time.sleep(10)
-        # input("Please complete the 2FA and press Enter to continue...")
+        time.sleep(5)
+        input("Please complete the 2FA and press Enter to continue...")
+
+        # Save cookies after logging in successfully
+        self.save_cookies()
+
+    # def login(self):
+    #     self.driver.get('https://www.linkedin.com/login')
+    #     self.driver.maximize_window()
+    #     email_field = self.driver.find_element(By.ID, 'username')
+    #     password_field = self.driver.find_element(By.ID, 'password')
+
+    #     email_field.send_keys(self.username)
+    #     password_field.send_keys(self.password)
+    #     password_field.send_keys(Keys.RETURN)
+
+    #     time.sleep(10)
+    #     # input("Please complete the 2FA and press Enter to continue...")
 
     def navigate_to_search(self):
         self.driver.get(self.search_url)
@@ -209,6 +222,12 @@ class LinkedInAutomation:
             time.sleep(5)
 
             for button in like_buttons:
+                post_url = self.driver.current_url  # Fetch post URL
+
+                # Check if this post has already been liked
+                if self.post_already_processed(post_url, 'Like'):
+                    print(f"Post already liked: {post_url}. Skipping...")
+                    continue
                 try:
                     if time.time() - self.start_time >= 120:
                         print("Sleeping for 1 minute...")
@@ -249,7 +268,7 @@ class LinkedInAutomation:
 
 
 username = 'burhancamp@yahoo.com'
-password = 'B@b9925179281'
+password = 'Taher@1234'
 search_url = 'https://www.linkedin.com/search/results/content/?keywords=architecture%20design&origin=SWITCH_SEARCH_VERTICAL'
 comments_file = 'Linked_comment.xlsx'
 

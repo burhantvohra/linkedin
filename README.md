@@ -1,18 +1,16 @@
-# linkedin
+LinkedIn Automation Script
+Code Flow Overview
+This script automates interactions on LinkedIn, such as logging in, liking, commenting, and reposting on posts. Below is an overview of the main code flow:
 
-LinkedIn Code Flow
-
-1) Connection Verification
-	--> Ensure an active internet connection before starting the script.
-	--> Continuously monitor the internet connection throughout execution.
-
-2) Login Process
-	--> New Users: Perform a fresh login and save cookies for future sessions.
-	--> Returning Users: Authenticate using saved cookies.
-
-3) Main Loop
-	--> Begin each iteration by verifying the internet connection.
-	--> Save the post link in a file named Link.txt for reference.
-	--> For each corresponding post, perform the specified actions (like, comment, repost), and then proceed to the next post.
-	--> When reaching the last post on the page, scroll to load additional posts and continue the operations on the newly loaded content.
-	--> Regularly monitor the internet connection, and every 2 minutes, pause the script for 1 minute before resuming the loop.
+1. Connection Verification
+Ensure an active internet connection before running the script.
+Continuously monitor the connection to prevent interruptions.
+2. Login Process
+New Users: Perform a fresh login and save cookies for future sessions.
+Returning Users: Authenticate using previously saved cookies for a faster login process.
+3. Main Loop
+Start each iteration by checking for an internet connection.
+Save each post link to Link.txt for reference.
+For each post, perform the required actions (like, comment, repost), then move to the next post.
+When reaching the last post on the page, scroll down to load more posts and repeat the process.
+Periodically check the internet connection and, every 2 minutes, pause the script for 1 minute before resuming the loop.

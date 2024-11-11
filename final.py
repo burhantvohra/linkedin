@@ -139,7 +139,7 @@ class LinkedInAutomation:
                 post_url = self.driver.current_url  # Fetch post URL
                 try:
                     if time.time() - self.start_time >= self.running_time:
-                        print("Sleeping for {self.sleeping_time} minute...")
+                        print(f"Sleeping for {self.sleeping_time} minute...")
                         time.sleep(self.sleeping_time)
                         self.start_time = time.time()
 
@@ -171,7 +171,7 @@ class LinkedInAutomation:
                         EC.element_to_be_clickable((By.XPATH, '//span[text()="Repost"]/ancestor::div[@role="button"]'))
                     )
                     if time.time() - self.start_time >= self.running_time:
-                        print("Sleeping for {self.sleeping_time} minute...")
+                        print(f"Sleeping for {self.sleeping_time} minute...")
                         time.sleep(self.sleeping_time)
                         self.start_time = time.time()
 
@@ -197,7 +197,7 @@ class LinkedInAutomation:
             for comment_button in comment_buttons:
                 try:
                     if time.time() - self.start_time >= self.running_time:
-                        print("Sleeping for {self.sleeping_time} minute...")
+                        print(f"Sleeping for {self.sleeping_time} minute...")
                         time.sleep(self.sleeping_time)
                         self.start_time = time.time()
 
@@ -279,6 +279,7 @@ class LinkedInAutomation:
                         time.sleep(5)
                         self.click_like_buttons()    
                         self.repost_all_posts()
+                        self.comment_on_all_posts()
                         time.sleep(10)
 
                         # Close the new tab
@@ -292,7 +293,7 @@ class LinkedInAutomation:
 
                     
                     if time.time() - self.start_time >= self.running_time:
-                        print("Sleeping for {self.sleeping_time} minute...")
+                        print(f"Sleeping for {self.sleeping_time} minute...")
                         time.sleep(self.sleeping_time)
                         self.start_time = time.time()
                     
